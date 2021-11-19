@@ -305,7 +305,7 @@ public class Parser {
   }
   private void for_stmt() throws SyntaxError{
     accept(Token.FOR);
-    accept(Token.RIGHTPAREN);
+    accept(Token.LEFTPAREN);
     if(currentToken.kind == Token.ID){
       asgnexpr();
     }

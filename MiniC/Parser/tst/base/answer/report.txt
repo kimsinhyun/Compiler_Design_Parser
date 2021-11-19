@@ -1,5 +1,5 @@
 Parser Test Report
-generated Fri Nov 19 13:31:10 KST 2021
+generated Fri Nov 19 13:35:48 KST 2021
 c10.txt succeded
 c11.txt succeded
 c12.txt succeded
@@ -30,8 +30,8 @@ c34.txt succeded
 c35.txt succeded
 c36.txt succeded
 c37.txt succeded
-c38.txt failed
-c39.txt failed
+c38.txt succeded
+c39.txt succeded
 c3.txt succeded
 c40.txt succeded
 c41.txt succeded
