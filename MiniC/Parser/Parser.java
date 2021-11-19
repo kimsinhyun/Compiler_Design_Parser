@@ -76,6 +76,65 @@ public class Parser {
     }
   }
 
+  boolean isFirst_args(int token) {
+    if (token == Token.INTLITERAL ||
+      token == Token.FLOATLITERAL  ||
+      token == Token.STRINGLITERAL  ||
+      token == Token.BOOLLITERAL ||
+      token == Token.PLUS ||
+      token == Token.MINUS ||
+      token == Token.TIMES ||
+      token == Token.DIV ||
+      token == Token.NOT ||
+      token == Token.LEFTPAREN ||
+      token == Token.ID) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  boolean isFirst_unary_expr(int token) {
+    if (token == Token.INTLITERAL ||
+      token == Token.FLOATLITERAL  ||
+      token == Token.STRINGLITERAL  ||
+      token == Token.BOOLLITERAL ||
+      token == Token.PLUS ||
+      token == Token.MINUS ||
+      token == Token.NOT ||
+      token == Token.LEFTPAREN ||
+      token == Token.ID) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  boolean ifFirst_primary_expr(int token){
+    if (token == Token.INTLITERAL ||
+      token == Token.FLOATLITERAL  ||
+      token == Token.STRINGLITERAL  ||
+      token == Token.BOOLLITERAL ||
+      token == Token.LEFTPAREN ||
+      token == Token.ID) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  boolean isFirst_stmt(int token) {
+    if (token == Token.LEFTBRACE ||
+      token == Token.IF  ||
+      token == Token.WHILE  ||
+      token == Token.FOR ||
+      token == Token.RETURN ||
+      token == Token.ID) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////
   //
   // toplevel parse() routine:
@@ -130,7 +189,7 @@ public class Parser {
   public void parseFunPart() throws SyntaxError {
     // We already know that the current token is "(".
     // Otherwise use accept() !
-    acceptIt();
+    accept(Token.LEFTPAREN);
     if (isTypeSpecifier(currentToken.kind)) {
       parseParamsList();
     }
@@ -149,8 +208,18 @@ public class Parser {
 
   public void parseParamsList() throws SyntaxError {
     // to be completed by you...
-
-  } 
+    parameter_decl();
+    while(currentToken.kind == Token.COMMA){
+      accept(Token.COMMA);
+      parameter_decl();
+    }
+  }
+  private void parameter_decl() throws SyntaxError{
+    if(isTypeSpecifier(currentToken.kind)){
+      acceptIt();
+    }
+    declarator();
+  }
 
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -163,9 +232,100 @@ public class Parser {
 
   public void parseCompoundStmt() throws SyntaxError {
     // to be completed by you...
-
+    accept(Token.LEFTBRACE);
+    while(isTypeSpecifier(currentToken.kind)){
+      acceptIt();
+      accept(Token.ID);
+      parseVarPart();
+    }
+    while(isFirst_stmt(currentToken.kind)){
+      stmt();
+    }
+    accept(Token.RIGHTBRACE);
   } 
 
+  private void stmt() throws SyntaxError{
+    if(currentToken.kind == Token.LEFTBRACE){
+      parseCompoundStmt();
+    }
+    else if(currentToken.kind == Token.IF){
+      if_stmt();
+    }
+    else if(currentToken.kind == Token.WHILE){
+      while_stmt();
+    }
+    else if(currentToken.kind == Token.FOR){
+      for_stmt();
+    }
+    else if(currentToken.kind == Token.RETURN){
+      accept(Token.RETURN);
+      if(isFirst_args(currentToken.kind)){     //First(expr) = First(args)
+        expr();
+      }
+      accept(Token.SEMICOLON);
+    }
+    else if(currentToken.kind == Token.ID){
+      accept(Token.ID);
+      if(currentToken.kind == Token.ASSIGN){
+        accept(Token.ASSIGN);
+        expr();
+        accept(Token.SEMICOLON);
+      }
+      else if (currentToken.kind == Token.LEFTBRACKET){
+        accept(Token.LEFTBRACKET);
+        expr();
+        accept(Token.RIGHTBRACKET);
+        accept(Token.ASSIGN);
+        expr();
+        accept(Token.SEMICOLON);
+      }
+      else if(currentToken.kind == Token.LEFTPAREN){
+        arglist();
+        accept(Token.SEMICOLON);
+      }
+    }
+  }
+  private void if_stmt() throws SyntaxError{
+    accept(Token.IF);
+    accept(Token.LEFTPAREN);
+    expr();
+    accept(Token.RIGHTPAREN);
+    stmt();
+    if(currentToken.kind == Token.ELSE){
+      accept(Token.ELSE);
+      stmt();
+    }
+  }
+  private void while_stmt() throws SyntaxError{
+    accept(Token.WHILE);
+    accept(Token.LEFTPAREN);
+    expr();
+    accept(Token.RIGHTPAREN);
+    stmt();
+  }
+  private void for_stmt() throws SyntaxError{
+    accept(Token.FOR);
+    accept(Token.RIGHTPAREN);
+    if(currentToken.kind == Token.ID){
+      asgnexpr();
+    }
+    accept(Token.SEMICOLON);
+    if(isFirst_args(currentToken.kind)){
+      expr();
+    }
+    accept(Token.SEMICOLON);
+    if(currentToken.kind == Token.ID){
+      asgnexpr();
+    }
+    accept(Token.RIGHTPAREN);
+    stmt();
+  }
+
+  private void asgnexpr() throws SyntaxError{
+    accept(Token.ID);
+    accept(Token.ASSIGN);
+    expr();
+  }
 
   // VarPart ::= ( "[" INTLITERAL "]" )?  ( "=" initializer ) ? ( "," init_decl)* ";"
   public void parseVarPart() throws SyntaxError {
@@ -190,7 +350,7 @@ public class Parser {
   private void init_decl() throws SyntaxError{
     declarator();
     if(currentToken.kind  == Token.ASSIGN){
-      parse(Token.ASSIGN);
+      accept(Token.ASSIGN);
       initializer();
     }
   }
@@ -199,6 +359,7 @@ public class Parser {
   private void declarator() throws SyntaxError{
     accept(Token.ID);
     if(currentToken.kind == Token.LEFTBRACKET){
+      accept(Token.LEFTBRACKET);
       accept(Token.INTLITERAL);
       accept(Token.RIGHTBRACKET);
     }
@@ -215,6 +376,7 @@ public class Parser {
       }
       accept(Token.RIGHTBRACE);
     }
+    // expr
     else{
       expr();
     }
@@ -231,6 +393,7 @@ public class Parser {
   private void and_expr() throws SyntaxError{
     relational_expr();
     while(currentToken.kind == Token.AND){
+      accept(Token.AND);
       relational_expr();
     }
   }
@@ -251,13 +414,57 @@ public class Parser {
   }
 
   private void mult_expr() throws SyntaxError{
-    if(currentToken.kind == Token.TIMES || currentToken.kind == Token.DIV){
-      acceptIt();
+    if(isFirst_unary_expr(currentToken.kind)){
       unary_expr();
     }
     else{
-      unary_expr();
+      while(currentToken.kind == Token.TIMES || currentToken.kind == Token.DIV){
+        acceptIt();
+        unary_expr();
+      }
     }
   }
+  private void unary_expr() throws SyntaxError{
+    if((currentToken.kind == Token.PLUS) || (currentToken.kind == Token.MINUS) || (currentToken.kind == Token.NOT)){
+      acceptIt();
+      unary_expr();
+    }
+    else if(ifFirst_primary_expr(currentToken.kind)){
+      primary_expr();
+    }
+  }
+  private void primary_expr() throws SyntaxError{
+    if(isLiteral(currentToken.kind)){
+      acceptIt();
+    }
+    else if(currentToken.kind == Token.LEFTPAREN){      // "(" expr ")"
+      accept(Token.LEFTPAREN);
+      expr();
+      accept(Token.RIGHTPAREN);
+    }
+    else if(currentToken.kind == Token.ID){
+      accept(Token.ID);
+      if (currentToken.kind == Token.LEFTBRACKET){      // ID "[" expr "]"
+        accept(Token.LEFTBRACKET);
+        expr();
+        accept(Token.RIGHTBRACKET);
+      }
+      else if(currentToken.kind == Token.LEFTPAREN){      // ID arglist?   -> FISRT(arglist) = "("
+        arglist();
+      }
+    } 
+  }
 
+  private void arglist() throws SyntaxError{
+    accept(Token.LEFTPAREN);
+    // first(args) = {+, -, *, /, !, ID, (, INTLITERAL, BOOLLITERAL, FLOATLITERAL,STRINGLITERAL)} 
+    if(isFirst_args(currentToken.kind)){                //args?   FIRST(args)
+      expr();
+      while(currentToken.kind == Token.COMMA){
+        accept(Token.COMMA);
+        expr();
+      }
+    }
+    accept(Token.RIGHTPAREN);
+  }
 }

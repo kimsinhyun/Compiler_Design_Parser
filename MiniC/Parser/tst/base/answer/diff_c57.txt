@@ -1,0 +1,5 @@
+--- __tmp_ans.txt	2021-11-19 12:53:14.709467052 +0900
++++ __tmp_sol.txt	2021-11-19 12:53:14.706217091 +0900
+@@ -1 +1 @@
+-Compilation was successful.
++Compilation was unsuccessful.
