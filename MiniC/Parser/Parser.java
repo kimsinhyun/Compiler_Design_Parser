@@ -417,12 +417,12 @@ public class Parser {
     if(isFirst_unary_expr(currentToken.kind)){
       unary_expr();
     }
-    else{
-      while(currentToken.kind == Token.TIMES || currentToken.kind == Token.DIV){
-        acceptIt();
-        unary_expr();
-      }
+    
+    while(currentToken.kind == Token.TIMES || currentToken.kind == Token.DIV){
+      acceptIt();
+      unary_expr();
     }
+
   }
   private void unary_expr() throws SyntaxError{
     if((currentToken.kind == Token.PLUS) || (currentToken.kind == Token.MINUS) || (currentToken.kind == Token.NOT)){
